@@ -23,12 +23,6 @@ def get_local_ip():
         return local_ip
     except Exception as e:
         return "127.0.0.1"
-    
-def get_public_ip():
-    try:
-        return requests.get("https://api.ipify.org", timeout=2).text
-    except Exception as e:
-        return "unknown"
 
 def is_private_ip(ip_addr):
     """

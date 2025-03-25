@@ -1,10 +1,8 @@
 import asyncio
 import websockets
-import requests
 from config.logger import setup_logging
 from core.connection import ConnectionHandler
 from core.utils.util import get_local_ip
-from core.utils.util import get_public_ip
 from core.utils import asr, vad, llm, tts, memory, intent
 
 TAG = __name__
@@ -60,7 +58,6 @@ class WebSocketServer:
                 self.config["Intent"][self.config["selected_module"]["Intent"]]
             ),
         )
-    
 
     async def start(self):
         server_config = self.config["server"]
@@ -69,11 +66,7 @@ class WebSocketServer:
         selected_module = self.config.get("selected_module")
         self.logger.bind(tag=TAG).info(f"selected_module values: {', '.join(selected_module.values())}")
 
-        public_ip = get_public_ip()  # 获取公共 IP
-        local_ip = get_local_ip() # 获取本地 IP
-
-        self.logger.bind(tag=TAG).info("Server is running locally at ws://{}:{}", local_ip, port)
-        self.logger.bind(tag=TAG).info("Server is running publicly at ws://{}:{}", public_ip, port)
+        self.logger.bind(tag=TAG).info("Server is running at ws://{}:{}", get_local_ip(), port)
         self.logger.bind(tag=TAG).info("=======上面的地址是websocket协议地址，请勿用浏览器访问=======")
         async with websockets.serve(
                 self._handle_connection,
