@@ -3,6 +3,7 @@ import websockets
 from config.logger import setup_logging
 from core.connection import ConnectionHandler
 from core.utils.util import get_local_ip
+from core.utils.util import get_public_ip
 from core.utils import asr, vad, llm, tts, memory, intent
 
 TAG = __name__
@@ -66,7 +67,8 @@ class WebSocketServer:
         selected_module = self.config.get("selected_module")
         self.logger.bind(tag=TAG).info(f"selected_module values: {', '.join(selected_module.values())}")
 
-        self.logger.bind(tag=TAG).info("Server is running at ws://{}:{}", get_local_ip(), port)
+        self.logger.bind(tag=TAG).info("Server is running locally at ws://{}:{}",get_local_ip(), port)
+        self.logger.bind(tag=TAG).info("Server is running publicly at ws://{}:{}", get_public_ip(), port)
         self.logger.bind(tag=TAG).info("=======上面的地址是websocket协议地址，请勿用浏览器访问=======")
         async with websockets.serve(
                 self._handle_connection,
