@@ -1,122 +1,174 @@
 <template>
   <el-header class="header">
-    <div style="display: flex;justify-content: space-between;">
+    <div style="display: flex;justify-content: space-between;margin-top: 6px; ">
       <div style="display: flex;align-items: center;gap: 10px;">
-        <img src="@/assets/xiaozhi-logo.png" alt="" style="width: 56px;height: 56px;" />
-        <img src="@/assets/xiaozhi-ai.png" alt="" style="width: 78px;height: 16px;" />
-        <div class="equipment-management" @click="goHome">
-          <img src="@/assets/home/equipment.png" alt="" style="width: 16px;height: 14px;" />
-          设备管理
+        <img alt="" src="@/assets/xiaozhi-logo.png" style="width: 42px;height: 42px;"/>
+        <img alt="" src="@/assets/xiaozhi-ai.png" style="width: 58px;height: 12px;"/>
+        <div class="equipment-management" :class="{ 'active-tab': $route.path === '/home' }" @click="goHome">
+          <img alt="" src="@/assets/home/equipment.png" style="width: 12px;height: 10px;"/>
+          智能体管理
         </div>
-        <div class="console">
-          <i class="el-icon-s-grid" style="font-size: 14px;color: #979db1;" />
-          控制台
+        <div class="equipment-management" :class="{ 'active-tab': $route.path === '/user-management' }" @click="goUserManagement">
+          用户管理
         </div>
-        <div class="equipment-management2">
-          设备管理
-          <img src="@/assets/home/close.png" alt="" style="width: 8px;height: 8px;" />
+        <div class="equipment-management" :class="{ 'active-tab': $route.path === '/model-config' }" @click="goModelConfig">
+          模型配置
         </div>
       </div>
-      <div style="display: flex;align-items: center;gap: 10px;">
+      <div style="display: flex;align-items: center;gap: 7px; margin-top: 2px;">
         <div class="serach-box">
-          <el-input placeholder="输入名称搜索.." v-model="serach" />
-          <img src="@/assets/home/search.png" alt=""
-               style="width: 16px;height: 16px;margin-right: 15px;cursor: pointer;" />
+          <el-input v-model="serach" placeholder="输入名称搜索.." style="border: none; background: transparent;"
+                    @keyup.enter.native="handleSearch"/>
+          <img alt="" src="@/assets/home/search.png"
+               style="width: 14px;height: 14px;margin-right: 11px;cursor: pointer;" @click="handleSearch"/>
         </div>
-        <img src="@/assets/home/avatar.png" alt="" style="width: 28px;height: 28px;" />
-        <div class="user-info">
-          158 3632 4642
-        </div>
+        <img alt="" src="@/assets/home/avatar.png" style="width: 21px;height: 21px;"/>
+        <el-dropdown trigger="click">
+          <span class="el-dropdown-link">
+             {{ userInfo.mobile || '加载中...' }}<i class="el-icon-arrow-down el-icon--right"></i>
+          </span>
+          <el-dropdown-menu slot="dropdown">
+            <el-dropdown-item icon="el-icon-plus" @click.native="">个人中心</el-dropdown-item>
+            <el-dropdown-item icon="el-icon-circle-plus" @click.native="showChangePasswordDialog">修改密码</el-dropdown-item>
+            <el-dropdown-item icon="el-icon-circle-plus-outline" @click.native="">退出登录</el-dropdown-item>
+          </el-dropdown-menu>
+        </el-dropdown>
       </div>
     </div>
+
+    <!-- 修改密码弹窗 -->
+    <ChangePasswordDialog :visible.sync="isChangePasswordDialogVisible" />
   </el-header>
 </template>
 
 <script>
+import userApi from '@/apis/module/user';
+import ChangePasswordDialog from './ChangePasswordDialog.vue'; // 引入修改密码弹窗组件
+
 export default {
   name: 'HeaderBar',
+  components: {
+    ChangePasswordDialog
+  },
+  props: ['devices'],  // 接收父组件设备列表
   data() {
-    return { serach: '' }
+    return {
+      serach: '',
+      userInfo: {
+        username: '',
+        mobile: ''
+      },
+      isChangePasswordDialogVisible: false // 控制修改密码弹窗的显示
+    }
+  },
+  mounted() {
+    this.fetchUserInfo()
   },
   methods: {
     goHome() {
       // 跳转到首页
       this.$router.push('/')
+    },
+    goUserManagement() {
+      this.$router.push('/user-management')
+    },
+    goModelConfig() {
+      this.$router.push('/model-config')
+    },
+    // 获取用户信息
+    fetchUserInfo() {
+      userApi.getUserInfo(({data}) => {
+        this.userInfo = data.data
+      })
+    },
+
+    // 处理搜索
+    handleSearch() {
+      const searchValue = this.serach.trim();
+      let filteredDevices;
+
+      if (!searchValue) {
+        // 当搜索内容为空时，显示原始完整列表
+        filteredDevices = this.$parent.originalDevices;
+      } else {
+        // 过滤逻辑
+        filteredDevices = this.devices.filter(device => {
+          return device.agentName.includes(searchValue) ||
+              device.ttsModelName.includes(searchValue) ||
+              device.ttsVoiceName.includes(searchValue);
+        });
+      }
+
+      this.$emit('search-result', filteredDevices);
+    },
+
+    // 显示修改密码弹窗
+    showChangePasswordDialog() {
+      this.isChangePasswordDialogVisible = true;
     }
   }
 }
 </script>
 
 <style scoped>
-.equipment-management,
-.equipment-management2 {
-  cursor: pointer;
-}
-
 .equipment-management {
-  width: 110px;
-  height: 32px;
-  border-radius: 16px;
-  background: #5778ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  font-weight: 500;
-  color: #fff;
-  font-size: 14px;
-}
-
-.equipment-management2 {
-  width: 116px;
-  height: 30px;
-  border-radius: 15px;
+  width: 82px;
+  height: 24px;
+  border-radius: 12px;
   background: #fff;
   display: flex;
   justify-content: center;
-  font-size: 12px;
-  color: #979db1;
-  font-weight: 400;
-  gap: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  gap: 7px;
   color: #3d4566;
-  margin-left: 20px;
+  margin-left: 1px;
   align-items: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+}
+
+.equipment-management.active-tab {
+  background: #5778ff !important;
+  color: #fff !important;
 }
 
 .header {
   background: #f6fcfe66;
   border: 1px solid #fff;
+  height: 53px !important;
 }
 
 .serach-box {
   display: flex;
-  width: 306px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: #e2f5f7;
+  width: 220px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #f6fcfe66;
+  border: 1px solid #e4e6ef;
   align-items: center;
+  padding: 0 7px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-right: 15px;
 }
+
+.serach-box /deep/ .el-input__inner {
+  border-radius: 15px;
+  height: 100%;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding-left: 12px;
+}
+
 
 .user-info {
   font-weight: 600;
-  font-size: 16px;
+  font-size: 12px;
   letter-spacing: -0.02px;
   text-align: left;
   color: #3d4566;
 }
-.console {
-  width: 120px;
-  height: 30px;
-  border-radius: 15px;
-  background: radial-gradient(50% 50% at 50% 50%, #fff 0%, #e8f0ff 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #979db1;
-  font-weight: 400;
-  gap: 10px;
-  color: #979db1;
-  margin-left: 20px;
-}
+
 </style>

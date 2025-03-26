@@ -64,8 +64,6 @@ class WebSocketServer:
         server_config = self.config["server"]
         host = server_config["ip"]
         port = server_config["port"]
-        selected_module = self.config.get("selected_module")
-        self.logger.bind(tag=TAG).info(f"selected_module values: {', '.join(selected_module.values())}")
 
         self.logger.bind(tag=TAG).info("Server is running locally at ws://{}:{}",get_local_ip(), port)
         self.logger.bind(tag=TAG).info("Server is running publicly at ws://{}:{}", get_public_ip(), port)

@@ -18,65 +18,6 @@ export default {
                 })
             }).send()
     },
-    // 获取用户信息
-    getUserInfo(callback) {
-        RequestService.sendRequest().url(`${getServiceUrl()}/api/v1/user/info`)
-            .method('GET')
-            .success((res) => {
-                RequestService.clearRequestTime()
-                callback(res)
-            })
-            .fail(() => {
-                RequestService.reAjaxFun(() => {
-                    this.getUserInfo()
-                })
-            }).send()
-    },
-    // 获取设备信息
-    getHomeList(callback) {
-        RequestService.sendRequest().url(`${getServiceUrl()}/api/v1/user/device/bind`)
-            .method('GET')
-            .success((res) => {
-                RequestService.clearRequestTime()
-                callback(res)
-            })
-            .fail(() => {
-                RequestService.reAjaxFun(() => {
-                    this.getUserInfo()
-                })
-            }).send()
-    },
-    // 解绑设备
-    unbindDevice(device_id, callback) {
-        RequestService.sendRequest()
-            .url(`${getServiceUrl()}/api/v1/user/device/unbind/${device_id}`)
-            .method('PUT')
-            .success((res) => {
-                RequestService.clearRequestTime();
-                callback(res);
-            })
-            .fail(() => {
-                RequestService.reAjaxFun(() => {
-                  this.unbindDevice(device_id, callback);
-                });
-              }).send()
-    },
-    // 绑定设备
-    bindDevice(deviceCode, callback) {
-        RequestService.sendRequest()
-            .url(`${getServiceUrl()}/api/v1/user/device/bind/${deviceCode}`)
-            .method('POST')
-            .success((res) => {
-                RequestService.clearRequestTime();
-                callback(res);
-            })
-            .fail((err) => {
-                console.error('绑定设备失败:', err);
-                RequestService.reAjaxFun(() => {
-                    this.bindDevice(deviceCode, callback);
-                });
-            }).send();
-    },
     // 获取验证码
     getCaptcha(uuid, callback) {
 
@@ -85,9 +26,9 @@ export default {
             .method('GET')
             .type('blob')
             .header({
-                  'Content-Type': 'image/gif',
-                  'Pragma': 'No-cache',
-                  'Cache-Control': 'no-cache'
+                'Content-Type': 'image/gif',
+                'Pragma': 'No-cache',
+                'Cache-Control': 'no-cache'
             })
             .success((res) => {
                 RequestService.clearRequestTime();
@@ -126,22 +67,6 @@ export default {
                 });
             }).send();
     },
-    // 获取设备配置
-    getDeviceConfig(device_id, callback) {
-        RequestService.sendRequest()
-            .url(`${getServiceUrl()}/api/v1/user/configDevice/${device_id}`)
-            .method('GET')
-            .success((res) => {
-                RequestService.clearRequestTime();
-                callback(res);
-            })
-            .fail((err) => {
-                console.error('获取配置失败:', err);
-                RequestService.reAjaxFun(() => {
-                    this.getDeviceConfig(device_id, callback);
-                });
-            }).send();
-    },
     // 获取所有模型名称
     getModelNames(callback) {
         RequestService.sendRequest()
@@ -173,5 +98,134 @@ export default {
                 });
             }).send();
     },
-
+    // 获取智能体列表
+    getAgentList(callback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/agent`)
+            .method('GET')
+            .success((res) => {
+                RequestService.clearRequestTime();
+                callback(res);
+            })
+            .fail(() => {
+                RequestService.reAjaxFun(() => {
+                    this.getAgentList(callback);
+                });
+            }).send();
+    },
+    // 用户信息获取
+    getUserInfo(callback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/info`)
+            .method('GET')
+            .success((res) => {
+                RequestService.clearRequestTime()
+                callback(res)
+            })
+            .fail((err) => {
+                console.error('接口请求失败:', err)
+                RequestService.reAjaxFun(() => {
+                    this.getUserInfo(callback)
+                })
+            }).send()
+    },
+    // 添加智能体
+    addAgent(agentName, callback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/agent`)
+            .method('POST')
+            .data({name: agentName})
+            .success((res) => {
+                RequestService.clearRequestTime();
+                callback(res);
+            })
+            .fail(() => {
+                RequestService.reAjaxFun(() => {
+                    this.addAgent(agentName, callback);
+                });
+            }).send();
+    },
+    // 删除智能体
+    deleteAgent(agentId, callback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/agent/${agentId}`)
+            .method('DELETE')
+            .success((res) => {
+                RequestService.clearRequestTime();
+                callback(res);
+            })
+            .fail(() => {
+                RequestService.reAjaxFun(() => {
+                    this.deleteAgent(agentId, callback);
+                });
+            }).send();
+    },
+    // API接口代码修改
+    changePassword(oldPassword, newPassword, successCallback, errorCallback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/change-password`)  // 修改URL
+            .method('PUT')  // 修改方法为PUT
+            .data({
+                old_password: oldPassword,  // 修改参数名
+                new_password: newPassword   // 修改参数名
+            })
+            .success((res) => {
+                RequestService.clearRequestTime();
+                successCallback(res);
+            })
+            .fail((error) => {
+                RequestService.reAjaxFun(() => {
+                    this.changePassword(oldPassword, newPassword, successCallback, errorCallback);
+                });
+            })
+            .send();
+    },
+    // 获取智能体配置
+    getDeviceConfig(deviceId, callback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/agent/${deviceId}`)
+            .method('GET')
+            .success((res) => {
+                RequestService.clearRequestTime();
+                callback(res);
+            })
+            .fail((err) => {
+                console.error('获取配置失败:', err);
+                RequestService.reAjaxFun(() => {
+                    this.getDeviceConfig(deviceId, callback);
+                });
+            }).send();
+    },
+    // 配置智能体
+    updateAgentConfig(agentId, configData, callback) {
+        RequestService.sendRequest()
+            .url(`${getServiceUrl()}/api/v1/user/agent/${agentId}`)
+            .method('PUT')
+            .data(configData)
+            .success((res) => {
+                RequestService.clearRequestTime();
+                callback(res);
+            })
+            .fail(() => {
+                RequestService.reAjaxFun(() => {
+                    this.updateAgentConfig(agentId, configData, callback);
+                });
+            }).send();
+    },
+    // 已绑设备
+     getAgentBindDevices(agentId, callback) {
+         RequestService.sendRequest()
+             .url(`${getServiceUrl()}/api/v1/user/agent/device/bind/${agentId}`)
+             .method('GET')
+             .success((res) => {
+                 RequestService.clearRequestTime();
+                 callback(res);
+             })
+             .fail((err) => {
+                 console.error('获取设备列表失败:', err);
+                 RequestService.reAjaxFun(() => {
+                     this.getAgentBindDevices(agentId, callback);
+                 });
+             }).send();
+     },
 }
