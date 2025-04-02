@@ -1,8 +1,10 @@
 import asyncio
+import ssl
 import websockets
 from config.logger import setup_logging
 from core.connection import ConnectionHandler
 from core.utils.util import get_local_ip
+from core.utils.util import get_public_ip
 from core.utils import asr, vad, llm, tts, memory, intent
 
 TAG = __name__
@@ -86,19 +88,25 @@ class WebSocketServer:
         host = server_config["ip"]
         port = server_config["port"]
 
-        self.logger.bind(tag=TAG).info(
-            "Server is running at ws://{}:{}/xiaozhi/v1/", get_local_ip(), port
+        # 1) 创建 SSL 上下文对象
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        # 2) 加载你的证书和私钥
+        # certfile和keyfile请根据你自己的文件名调整
+        ssl_context.load_cert_chain(
+            certfile="core/certs/xiaozhiai.koreacentral.cloudapp.azure.com-crt.pem",
+            keyfile="core/certs/xiaozhiai.koreacentral.cloudapp.azure.com-key.pem"
         )
-        self.logger.bind(tag=TAG).info(
-            "=======上面的地址是websocket协议地址，请勿用浏览器访问======="
-        )
-        self.logger.bind(tag=TAG).info(
-            "如想测试websocket请用谷歌浏览器打开test目录下的test_page.html"
-        )
-        self.logger.bind(tag=TAG).info(
-            "=============================================================\n"
-        )
-        async with websockets.serve(self._handle_connection, host, port):
+
+        self.logger.bind(tag=TAG).info("Server is running locally at wss://{}:{}", get_local_ip(), port)
+        self.logger.bind(tag=TAG).info("Server is running publicly at wss://{}:{}", get_public_ip(), port)
+        self.logger.bind(tag=TAG).info("=======上面的地址是加密的websocket协议地址，请勿用浏览器直接访问=======")
+
+        async with websockets.serve(
+                self._handle_connection,
+                host,
+                port,
+                ssl=ssl_context
+        ):
             await asyncio.Future()
 
     async def _handle_connection(self, websocket):
